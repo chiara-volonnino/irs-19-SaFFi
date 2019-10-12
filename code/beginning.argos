@@ -39,7 +39,7 @@
   <!-- * Arena configuration * -->
   <!-- *********************** -->
   <arena size="10, 10, 1" center="0,0,0.5" positional_grid_size="20,20,1">
-	<floor id="f" source="image" path="empty_floor.png" />
+	<floor id="f" source="image" path="circle_fires.png" />
     <box id="bn" size="0.1, 10, 0.2" movable="false">
       <body position="4.9, 0, 0"  orientation="0,0,0" />
     </box>
@@ -76,15 +76,15 @@
 
 
     <!-- If you want to place the robot in a random position you may want to use this piece of code -->
-<distribute>
-      <position method="uniform" min="-4.9,-4.9,0" max="4.9,4.9,0" />
-      <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="80" max_trials="100">
-        <foot-bot id="fb">
-          <controller config="lua" />
-        </foot-bot>
-      </entity>
-    </distribute>
+ <distribute>
+	<position method="uniform" min="-4.9,-4.9,0" max="-3.7,-3.7,0" />
+	<orientation method="uniform" min="0,0,0" max="360,0,0" />
+	<entity quantity="20" max_trials="100">
+	<foot-bot id="fb">
+	  <controller config="lua" />
+	</foot-bot>
+	</entity>
+ </distribute>
 
 
 
