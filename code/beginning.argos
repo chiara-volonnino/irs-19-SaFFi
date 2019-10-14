@@ -7,9 +7,7 @@
   <!-- ************************* -->
   <framework>
     <system threads="0" />
-    <experiment length="0"
-                ticks_per_second="10"
-     />
+    <experiment length="0" ticks_per_second="10"/>
   </framework>
  
   <!-- *************** -->
@@ -20,13 +18,16 @@
     <lua_controller id="lua">
       <actuators>
         <differential_steering implementation="default" noise_level="0.0"/>
+	<range_and_bearing implementation="default" />
 	<leds implementation="default" medium="leds" />
       </actuators>
+
       <sensors>
         <differential_steering implementation="default" noise_level="0.0" />
         <footbot_proximity implementation="default" show_rays="true" noise_level="0.0" />
         <footbot_light implementation="rot_z_only" show_rays="true" noise_level="0.0" />
 	<footbot_motor_ground implementation="rot_z_only" noise_level="0.0" />
+	<range_and_bearing implementation="medium" medium="rab" />
 	<positioning implementation="default" noise_level="0.0" />
       </sensors>
       <params script="beginning.lua" />
@@ -34,7 +35,6 @@
  
   </controllers>
  
-
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
@@ -60,36 +60,15 @@
            intensity="1"
            medium="leds"/>
  
-    <!-- <distribute>
-      <position method="uniform" min="-2,-2,0" max="2,2,0" />
-      <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="15" max_trials="100">
-        <box id="o" size="0.2, 0.2, 0.2" movable="false" />
-      </entity> 
-    </distribute> -->
-    
-    
-  <!--      <foot-bot id="fb">
-      <controller config="lua" />
-      <body position="0.2,0.3,0" orientation="0,0,0" />
-    </foot-bot>-->
-
-
-    <!-- If you want to place the robot in a random position you may want to use this piece of code -->
- <distribute>
-	<position method="uniform" min="-4.9,-4.9,0" max="-3.7,-3.7,0" />
-	<orientation method="uniform" min="0,0,0" max="360,0,0" />
-	<entity quantity="20" max_trials="100">
-	<foot-bot id="fb">
-	  <controller config="lua" />
-	</foot-bot>
-	</entity>
- </distribute>
-
-
-
-
-
+	 <distribute>
+		<position method="uniform" min="-4.9,-4.9,0" max="-3.7,-3.7,0" />
+		<orientation method="uniform" min="0,0,0" max="360,0,0" />
+		<entity quantity="20" max_trials="100">
+		<foot-bot id="fb" rab_range="1">
+		  <controller config="lua" />
+		</foot-bot>
+		</entity>
+	 </distribute>
   </arena>
  
   <!-- ******************* -->
@@ -104,7 +83,7 @@
   <!-- ********* -->
   <media>
     <led id="leds" />
-    <!-- <led id="leds1" /> -->
+	<range_and_bearing id="rab" index="grid" grid_size="1,1,1" />
   </media>
 
 	
@@ -118,5 +97,4 @@
       </camera>
     </qt-opengl>
   </visualization>
- 
 </argos-configuration>
