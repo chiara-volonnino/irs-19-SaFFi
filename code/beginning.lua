@@ -1,7 +1,8 @@
 -- Put your global variables here
 
+local vector = require "vector"
+
 MOVE_STEPS = 50
-vector = require "vector"
 n_steps = 0
 steps_resolution = 5
 robot_number = 0
@@ -14,115 +15,76 @@ motor_ground = nil
 
 robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
 
-
-
-
+local v1 = {}
+local v2 = {}
 --[[ This function is executed every time you press the 'execute'
      button ]]
 function init()
-    n_steps = 0
+	L = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
 	robot.range_and_bearing.set_data(1, 1)
 end
 
 function step()
-    v = {0, 0}
 	if robot_state == 0 then
+		--robot.wheels.set_velocity(robot.random.uniform(10), robot.random.uniform(10))
+		v1 = vector.vec2_polar_sum(wander(), see_light())
+		v2 = vector.vec2_polar_sum(v1, see_obstacle())
+		--log("sono qui, after trasformation! ")
+		wheels_l, wheels_r = trasformation(v2.length, v2.angle)
+		--log("sono qui, next trasformation " .. wheel_l.length)
+		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
-            log("reached fire")
-            robot_state = 1
+			robot_state = 1
 		else
-            log("must find fire")
-            v = vector.vec2_polar_sum(see_light(), see_obstacle())
-            log("VECTOR 0:       " .. v[0])
-            log("VECTOR 1:       " .. v[1])
-        end
-    end
-	if has_to_wander(v) then
-        log("has to wander")
-        wander()		
-    else
-        log("i'm going to the fire")
-        wheels = trasformation(v.x, v.y)
-		robot.wheels.set_velocity(robot.random.uniform(10), robot.random.uniform(10))
+			log("")
+		end
+	elseif robot_state == 1 then
+		robot.wheels.set_velocity(0, 0)
+	elseif robot_state == 2 then
+		robot.wheels.set_velocity(0, 0)
+		log("I'm dead")
+	else 
+		log("robot in state n")
 	end
-
 	--robot_number = countRAB()	
 	--log("range_and_bearing " .. robot_number)
-	--if n_steps % steps_resolution == 0 then
-    	--steps_resolution = DEFAULT_STEPS_RESOLUTION
-		--follow_light()
-  	--end
-  	--n_steps = n_steps + 1
 end
 
 
-function trasformation(v, w)
-	v = proximity_sensor.value
-	w = proximity_sensor.angle
-	if between(angle, 0, math.pi/2) then
+function trasformation(v, w) -- TODO: metti a posto
+	--if between(0, math.pi/2) then
 	  v_left = v - ((w * L)/2)
 	  v_right = v + ((w * L)/2)
-	elseif between(angle, -math.pi/2, 0) then
-	  v_left = v + ((w * L)/2)
-	  v_right = v - ((w * L)/2) 
-	end
-	return {v_left, v_right}
+	  --log("value return trasformation: " .. v_left, v_right)
+	--else
+	  --v_left = v + ((w * L)/2)
+	  --v_right = v - ((w * L)/2) 
+	  --log("value return trasformation: " .. v_left, v_right)
+	--end
+	--log("value return trasformation: " .. v_left, v_right)
+	return v_left, v_right
   end
-  
-function has_to_wander(v)
-    if robot_state == 0 then
-        if v[0] == 0 and v[1] == 0 then
-            return true
-        end
-    end
-    return false
-end
-
-
-function fire_danger_zone()
-	for _, motor_ground in pairs(robot.motor_ground) do
-		log("motor_ground.value " .. motor_ground.value)
-		if robot.motor_ground[_].value == 0.29899998085172 then 
-			robot.leds.set_all_colors("red")
-			return true
-		else 
-			log("don't see fire")
-			return false
-		end
-	end
-end
-
-function fire_handling_zone()
-	for _, motor_ground in pairs(robot.motor_ground) do
- 		if robot.motor_ground[_].value == 0.69493725346584 then
-			robot.leds.set_all_colors("blue")
-			return true
-		 else
-			return false
-		 end
-	end
-end
 
 function get_temperature_readings()
 	medium_temp = 0
 	--high_temp = 0
 	for _, motor_ground in pairs(robot.motor_ground) do
-		if robot.motor_ground[_].value == 0.69493725346584 then
-			robot.leds.set_all_colors("blue")
+		if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
+			robot.leds.set_all_colors("red")
 			medium_temp = medium_temp+1
 		end
 		--if robot.motor_ground[_].value == 0.29899998085172 then 
 		--	high_temp = high_temp+1
 		--end
 	end
-	if medium_temp >= 3 then
+	log("temp " .. medium_temp)
+	if medium_temp >= 2 then
 		return true
 	else
 		return false
 	end
 end
-
 
 function see_obstacle()
 	max_proximity_value = 0
@@ -134,36 +96,26 @@ function see_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-    log("OBSTACLE VALUE    :" .. max_proximity_value)
-    log("OSTACLE ANGLE  :" .. max_proximity_angle)
-    v.lenght = max_proximity_value
-    v.angle = max_proximity_angle
-	return v
+	return {length = max_proximity_value, angle = max_proximity_angle}
 end
 
 function see_light()
 	max_light_value = 0
 	max_light_angle = 0
-    v = {}
 	for _, light_sensor in pairs(robot.light) do
 		if light_sensor.value > max_light_value then 
-			robot.leds.set_all_colors("red")
-			max_light_value = light_sensor.value
+			robot.leds.set_all_colors("yellow")
+			max_light_value = light_sensor.value + 5
 			max_light_angle = light_sensor.angle
 		end 
-	end 
-    log("LIGHT VALUE     :" .. max_light_value)
-    log("LIGHT ANGLE     :" .. max_light_angle)
-    v.lenght = max_light_value
-    v.angle = max_light_angle
-	return v
+	end
+	return {length = max_light_value, angle = max_light_angle}
 end
 
 function wander() 
 	--log("Robot is in wander state")
-	steps_resolution = 20 
 	robot.range_and_bearing.set_data(1, 0)
-	robot.wheels.set_velocity(robot.random.uniform(10), robot.random.uniform(10))
+	return {length = 10, angle = robot.random.uniform(10)} -- TODO: settare il random value
 end 
 
 function follow_light()
