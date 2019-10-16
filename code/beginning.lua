@@ -1,14 +1,4 @@
--- Put your global variables here
-
 local vector = require "vector"
-
-MOVE_STEPS = 50
-n_steps = 0
-steps_resolution = 5
-robot_number = 0
-
-wheel_speed_L = 0
-wheel_speed_R = 0
 
 light_sensor = nil
 motor_ground = nil
@@ -17,20 +7,26 @@ robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = f
 
 local v1 = {}
 local v2 = {}
---[[ This function is executed every time you press the 'execute'
-     button ]]
+
 function init()
 	L = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
 	robot.range_and_bearing.set_data(1, 1)
 end
 
+function reset()
+	robot.leds.set_all_colors("black")
+	robot.wheels.set_velocity(0,0)
+end
+
+function destroy()
+   -- put your code here
+end
+
 function step()
 	if robot_state == 0 then
-		--robot.wheels.set_velocity(robot.random.uniform(10), robot.random.uniform(10))
-		v1 = vector.vec2_polar_sum(wander(), see_light())
-		v2 = vector.vec2_polar_sum(v1, see_obstacle())
-		--log("sono qui, after trasformation! ")
+		v1 = vector.vec2_polar_sum(wander(), follow_light())
+		v2 = vector.vec2_polar_sum(v1, avoid_obstacle())
 		wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
 		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
@@ -46,52 +42,17 @@ function step()
 	else 
 		log("robot in state n")
 	end
-	--robot_number = countRAB()	
-	--log("range_and_bearing " .. robot_number)
 end
 
+-------------- Controller functions --------------
 
-function trasformation_vector_to_velocity(v)
-	  v_left = v.length - ((v.angle * L)/2)
-	  v_right = v.length + ((v.angle * L)/2)
-	  log("Value left " .. v_left)
-	  log("Value right " .. v_right)
-	return v_left, v_right
-end
+function wander() 
+	--log("Robot is in wander state")
+	robot.range_and_bearing.set_data(1, 0)
+	return {length = robot.random.uniform(5), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
+end 
 
-function get_temperature_readings()
-	medium_temp = 0
-	--high_temp = 0
-	for _, motor_ground in pairs(robot.motor_ground) do
-		if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
-			robot.leds.set_all_colors("red")
-			medium_temp = medium_temp+1
-		end
-		--if robot.motor_ground[_].value == 0.29899998085172 then 
-		--	high_temp = high_temp+1
-		--end
-	end
-	if medium_temp >= 2 then
-		return true
-	else
-		return false
-	end
-end
-
-function see_obstacle()
-	max_proximity_value = 0
-	max_proximity_angle = 0
-    v = {}
-	for _, proximity_sensor in pairs(robot.proximity) do
-		if proximity_sensor.value > max_proximity_value then
-			max_proximity_value = proximity_sensor.value
-			max_proximity_angle = proximity_sensor.angle
-		end
-	end
-	return {length = max_proximity_value * 5, angle = max_proximity_angle + math.pi}
-end
-
-function see_light()
+function follow_light()
 	max_light_value = 0
 	max_light_angle = 0
 	for _, light_sensor in pairs(robot.light) do
@@ -104,43 +65,47 @@ function see_light()
 	return {length = max_light_value * 10, angle = max_light_angle}
 end
 
-function wander() 
-	--log("Robot is in wander state")
-	robot.range_and_bearing.set_data(1, 0)
-	return {length = robot.random.uniform(5), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
-end 
-
-function follow_light()
-	if not see_light() then
-		wander()
-		robot.leds.set_all_colors("black")
-		if see_fire() then
-			log("I SEE FIRE")
-		end
-	else 
-		-- gestire follow the light secondo un modello definito
-        
-        
-		log("follow the light")
-		if see_fire() then
-			log("I SEE FIRE")
+function avoid_obstacle()
+	max_proximity_value = 0
+	max_proximity_angle = 0
+    v = {}
+	for _, proximity_sensor in pairs(robot.proximity) do
+		if proximity_sensor.value > max_proximity_value then
+			max_proximity_value = proximity_sensor.value
+			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-end
-
-function obstacles_avoid()
+	return {length = max_proximity_value * 5, angle = max_proximity_angle + math.pi}
 end
 
 function stop_near_fire()
 end
 
+-------------- Extra functions --------------
 
+function trasformation_vector_to_velocity(v)
+	v_left = v.length - ((v.angle * L)/2)
+	v_right = v.length + ((v.angle * L)/2)
+  return v_left, v_right
+end
 
-
+function get_temperature_readings()
+  medium_temp = 0
+  for _, motor_ground in pairs(robot.motor_ground) do
+	  if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
+		  robot.leds.set_all_colors("red")
+		  medium_temp = medium_temp+1
+	  end
+  end
+  if medium_temp >= 2 then
+	  return true
+  else
+	  return false
+  end
+end
 
 function countRAB()
 	number_robot_sensed = 0
-	-- for each robot seen
 	for _, rab in ipairs(robot.range_and_bearing) do
 		if rab.range < 30 and rab.data[1] == 1 then   
 			number_robot_sensed = number_robot_sensed + 1
@@ -149,14 +114,3 @@ function countRAB()
 	end
 	return number_robot_sensed
 end 
-
-function reset()
-	robot.wheels.set_velocity(0,0)
-	n_steps = 0
-	robot.leds.set_all_colors("black")
-end
-
-function destroy()
-   -- put your code here
-end
-
