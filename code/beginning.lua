@@ -31,8 +31,7 @@ function step()
 		v1 = vector.vec2_polar_sum(wander(), see_light())
 		v2 = vector.vec2_polar_sum(v1, see_obstacle())
 		--log("sono qui, after trasformation! ")
-		wheels_l, wheels_r = trasformation(v2.length, v2.angle)
-		--log("sono qui, next trasformation " .. wheel_l.length)
+		wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
 		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
 			robot_state = 1
@@ -52,19 +51,13 @@ function step()
 end
 
 
-function trasformation(v, w) -- TODO: metti a posto
-	--if between(0, math.pi/2) then
-	  v_left = v - ((w * L)/2)
-	  v_right = v + ((w * L)/2)
-	  --log("value return trasformation: " .. v_left, v_right)
-	--else
-	  --v_left = v + ((w * L)/2)
-	  --v_right = v - ((w * L)/2) 
-	  --log("value return trasformation: " .. v_left, v_right)
-	--end
-	--log("value return trasformation: " .. v_left, v_right)
+function trasformation_vector_to_velocity(v)
+	  v_left = v.length - ((v.angle * L)/2)
+	  v_right = v.length + ((v.angle * L)/2)
+	  log("Value left " .. v_left)
+	  log("Value right " .. v_right)
 	return v_left, v_right
-  end
+end
 
 function get_temperature_readings()
 	medium_temp = 0
@@ -78,7 +71,6 @@ function get_temperature_readings()
 		--	high_temp = high_temp+1
 		--end
 	end
-	log("temp " .. medium_temp)
 	if medium_temp >= 2 then
 		return true
 	else
@@ -96,7 +88,7 @@ function see_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-	return {length = max_proximity_value, angle = max_proximity_angle}
+	return {length = max_proximity_value * 5, angle = max_proximity_angle + math.pi}
 end
 
 function see_light()
@@ -105,17 +97,17 @@ function see_light()
 	for _, light_sensor in pairs(robot.light) do
 		if light_sensor.value > max_light_value then 
 			robot.leds.set_all_colors("yellow")
-			max_light_value = light_sensor.value + 5
+			max_light_value = light_sensor.value
 			max_light_angle = light_sensor.angle
 		end 
 	end
-	return {length = max_light_value, angle = max_light_angle}
+	return {length = max_light_value * 10, angle = max_light_angle}
 end
 
 function wander() 
 	--log("Robot is in wander state")
 	robot.range_and_bearing.set_data(1, 0)
-	return {length = 10, angle = robot.random.uniform(10)} -- TODO: settare il random value
+	return {length = robot.random.uniform(5), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
 end 
 
 function follow_light()

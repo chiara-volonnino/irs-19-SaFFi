@@ -53,12 +53,12 @@
       <body position="0,4.9,0" orientation="0,0,0" />
     </box>
  
-    <!--<light id="light1"
+    <light id="light1"
            position="-1.5,-3.7,0.5"
            orientation="0,0,0"
            color="red"
            intensity="1"
-           medium="leds"/> -->
+           medium="leds"/>
 	
 	<light id="light2"
 	   position="-3,0,0.5"
