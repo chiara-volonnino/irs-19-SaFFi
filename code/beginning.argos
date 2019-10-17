@@ -133,7 +133,7 @@
 	   
 
 	 <distribute>
-		<position method="uniform" min="-4.9,-4.9,0" max="-3.7,-3.7,0" />
+		<position method="uniform" min="-4.9,-2.7,0" max="-3.7,-1.7,0" />
 		<orientation method="uniform" min="0,0,0" max="360,0,0" />
 		<entity quantity="20" max_trials="100">
 		<foot-bot id="fb" rab_range="1">
