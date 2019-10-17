@@ -2,16 +2,17 @@ local vector = require "vector"
 
 light_sensor = nil
 motor_ground = nil
-
 robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
 
+step = 0
 local v1 = {}
 local v2 = {}
+
 
 function init()
 	L = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
-	robot.range_and_bearing.set_data(1, 1)
+	--robot.range_and_bearing.set_data(1, 1)
 end
 
 function reset()
@@ -24,10 +25,17 @@ function destroy()
 end
 
 function step()
-	if robot_state == 0 then
+	if robot_state == 0 then            
 		v1 = vector.vec2_polar_sum(wander(), follow_light())
 		v2 = vector.vec2_polar_sum(v1, avoid_obstacle())
-		wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
+        
+        v5 = read_range_and_bearing(1)
+        if v5.length ~= 0 then
+            v3 = vector.vec2_polar_sum(v2,v5)
+            wheels_l, wheels_r = trasformation_vector_to_velocity(v5)
+        else
+            wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
+        end
 		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
 			robot_state = 1
@@ -35,10 +43,15 @@ function step()
 			log("")
 		end
 	elseif robot_state == 1 then
+        writre_range_and_bearing(2,25)
 		robot.wheels.set_velocity(0, 0)
+        if count_assisting_robots() then
+            robot.leds.set_all_colors("green")
+            robot_state = 2
+        end
 	elseif robot_state == 2 then
+        writre_range_and_bearing(1,50)
 		robot.wheels.set_velocity(0, 0)
-		log("I'm dead")
 	else 
 		log("robot in state n")
 	end
@@ -62,13 +75,12 @@ function follow_light()
 			max_light_angle = light_sensor.angle
 		end 
 	end
-	return {length = max_light_value * 10, angle = max_light_angle}
+	return {length = max_light_value * 5, angle = max_light_angle}
 end
 
 function avoid_obstacle()
 	max_proximity_value = 0
 	max_proximity_angle = 0
-    v = {}
 	for _, proximity_sensor in pairs(robot.proximity) do
 		if proximity_sensor.value > max_proximity_value then
 			max_proximity_value = proximity_sensor.value
@@ -79,7 +91,8 @@ function avoid_obstacle()
 end
 
 function stop_near_fire()
-end
+end        
+    
 
 -------------- Extra functions --------------
 
@@ -104,13 +117,49 @@ function get_temperature_readings()
   end
 end
 
-function countRAB()
-	number_robot_sensed = 0
-	for _, rab in ipairs(robot.range_and_bearing) do
-		if rab.range < 30 and rab.data[1] == 1 then   
-			number_robot_sensed = number_robot_sensed + 1
+--function countRAB()
+	--number_robot_sensed = 0
+	--for _, rab in ipairs(robot.range_and_bearing) do
+		--if rab.range < 30 and rab.data[1] == 1 then   
+			--number_robot_sensed = number_robot_sensed + 1
 			--log("in :" .. number_robot_sensed)
-		end
-	end
-	return number_robot_sensed
-end 
+		--end
+	--end
+	--return number_robot_sensed
+--end 
+
+
+function read_range_and_bearing(i)
+    for _,rab in ipairs(robot.range_and_bearing) do
+        log("RAB Range" .. rab.range)
+        log("RAB Data" .. rab.data[i])
+        if rab.data[1] == 50 then
+            log("GO AWAY")
+            return {length = (rab.range)*7, angle = rab.horizontal_bearing+math.pi}
+        else
+            log("Nessun cambiamento")
+            return {length = 0, angle = 0}
+        end
+    end
+end
+
+function writre_range_and_bearing(i,n)
+    robot.range_and_bearing.set_data(i,n)
+end
+
+function count_assisting_robots()
+    assisting_robots = 1
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[2] == 25 then
+            assisting_robots = assisting_robots +1
+        end
+    end
+    log("Assisting robots == " .. assisting_robots)
+    if assisting_robots == 3 then
+        log("FIre Reached Capacity")
+        return true
+    else
+        log("Still need help with fire")
+        return false
+    end
+end
