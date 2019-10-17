@@ -26,31 +26,35 @@ end
 
 function step()
 	if robot_state == 0 then            
-		v1 = vector.vec2_polar_sum(wander(), follow_light())
-		v2 = vector.vec2_polar_sum(v1, avoid_obstacle())
+		v1 = vector.vec2_polar_sum(wander(), avoid_obstacle())
         
         v5 = read_range_and_bearing(1)
         if v5.length ~= 0 then
-            v3 = vector.vec2_polar_sum(v2,v5)
-            wheels_l, wheels_r = trasformation_vector_to_velocity(v5)
+            v3 = vector.vec2_polar_sum(v1,v5)
+            wheels_l, wheels_r = trasformation_vector_to_velocity(v3)
+            robot.leds.set_all_colors("white")
         else
+            v2 = vector.vec2_polar_sum(v1, follow_light())
             wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
+            robot.leds.set_all_colors("yellow")
         end
 		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
+            robot.leds.set_all_colors("red")
 			robot_state = 1
 		else
 			log("")
 		end
 	elseif robot_state == 1 then
-        writre_range_and_bearing(2,25)
+        write_range_and_bearing(2,25)
 		robot.wheels.set_velocity(0, 0)
         if count_assisting_robots() then
             robot.leds.set_all_colors("green")
             robot_state = 2
         end
 	elseif robot_state == 2 then
-        writre_range_and_bearing(1,50)
+        write_range_and_bearing(2,25)
+        write_range_and_bearing(1,50)
 		robot.wheels.set_velocity(0, 0)
 	else 
 		log("robot in state n")
@@ -61,7 +65,7 @@ end
 
 function wander() 
 	--log("Robot is in wander state")
-	robot.range_and_bearing.set_data(1, 0)
+	--robot.range_and_bearing.set_data(1, 0)
 	return {length = robot.random.uniform(5), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
 end 
 
@@ -70,12 +74,11 @@ function follow_light()
 	max_light_angle = 0
 	for _, light_sensor in pairs(robot.light) do
 		if light_sensor.value > max_light_value then 
-			robot.leds.set_all_colors("yellow")
 			max_light_value = light_sensor.value
 			max_light_angle = light_sensor.angle
 		end 
 	end
-	return {length = max_light_value * 5, angle = max_light_angle}
+	return {length = max_light_value * 4, angle = max_light_angle}
 end
 
 function avoid_obstacle()
@@ -87,7 +90,7 @@ function avoid_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-	return {length = max_proximity_value * 5, angle = max_proximity_angle + math.pi}
+	return {length = max_proximity_value * 7, angle = max_proximity_angle + math.pi}
 end
 
 function stop_near_fire()
@@ -106,11 +109,10 @@ function get_temperature_readings()
   medium_temp = 0
   for _, motor_ground in pairs(robot.motor_ground) do
 	  if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
-		  robot.leds.set_all_colors("red")
 		  medium_temp = medium_temp+1
 	  end
   end
-  if medium_temp >= 2 then
+  if medium_temp >= 4 then
 	  return true
   else
 	  return false
@@ -135,7 +137,7 @@ function read_range_and_bearing(i)
         log("RAB Data" .. rab.data[i])
         if rab.data[1] == 50 then
             log("GO AWAY")
-            return {length = (rab.range)*7, angle = rab.horizontal_bearing+math.pi}
+            return {length = (rab.range/100)*15, angle = rab.horizontal_bearing+(math.pi)}
         else
             log("Nessun cambiamento")
             return {length = 0, angle = 0}
@@ -143,7 +145,7 @@ function read_range_and_bearing(i)
     end
 end
 
-function writre_range_and_bearing(i,n)
+function write_range_and_bearing(i,n)
     robot.range_and_bearing.set_data(i,n)
 end
 
@@ -155,7 +157,7 @@ function count_assisting_robots()
         end
     end
     log("Assisting robots == " .. assisting_robots)
-    if assisting_robots == 3 then
+    if assisting_robots >= 4 then
         log("FIre Reached Capacity")
         return true
     else
