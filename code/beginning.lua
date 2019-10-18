@@ -90,7 +90,9 @@ function avoid_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-	return {length = max_proximity_value * 7, angle = max_proximity_angle + math.pi}
+    v1 = {length = max_proximity_value * 7, angle = max_proximity_angle + math.pi}
+    v2 = {length = max_proximity_value * 2, angle = max_proximity_angle - math.pi/2}
+	return vector.vec2_polar_sum(v1,v2)
 end
 
 function stop_near_fire()
@@ -137,7 +139,7 @@ function read_range_and_bearing(i)
         log("RAB Data" .. rab.data[i])
         if rab.data[1] == 50 then
             log("GO AWAY")
-            return {length = (rab.range/100)*15, angle = rab.horizontal_bearing+(math.pi)}
+            return {length = 6, angle = rab.horizontal_bearing+(math.pi)}
         else
             log("Nessun cambiamento")
             return {length = 0, angle = 0}
