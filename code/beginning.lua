@@ -28,7 +28,7 @@ function step()
 	if robot_state == 0 then            
 		v1 = vector.vec2_polar_sum(wander(), avoid_obstacle())
         
-        v5 = read_range_and_bearing(1)
+        v5 = read_range_and_bearing(4)
         if v5.length ~= 0 then
             v3 = vector.vec2_polar_sum(v1,v5)
             wheels_l, wheels_r = trasformation_vector_to_velocity(v3)
@@ -46,18 +46,17 @@ function step()
 			log("")
 		end
 	elseif robot_state == 1 then
-        write_range_and_bearing(2,25)
+        write_range_and_bearing(3,1)
 		robot.wheels.set_velocity(0, 0)
-        if count_assisting_robots() then
+        if check_antenna() then
             robot.leds.set_all_colors("green")
             robot_state = 2
         end
 	elseif robot_state == 2 then
-        write_range_and_bearing(2,25)
-        write_range_and_bearing(1,50)
+        write_range_and_bearing(4,50)
 		robot.wheels.set_velocity(0, 0)
 	else 
-		log("robot in state n")
+		--log("robot in state n")
 	end
 end
 
@@ -66,7 +65,7 @@ end
 function wander() 
 	--log("Robot is in wander state")
 	--robot.range_and_bearing.set_data(1, 0)
-	return {length = robot.random.uniform(5), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
+	return {length = robot.random.uniform(2), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
 end 
 
 function follow_light()
@@ -78,7 +77,7 @@ function follow_light()
 			max_light_angle = light_sensor.angle
 		end 
 	end
-	return {length = max_light_value * 4, angle = max_light_angle}
+	return {length = (1 - max_light_value) * 3, angle = max_light_angle}
 end
 
 function avoid_obstacle()
@@ -90,7 +89,7 @@ function avoid_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-    v1 = {length = max_proximity_value * 7, angle = max_proximity_angle + math.pi}
+    v1 = {length = max_proximity_value * 4, angle = max_proximity_angle + math.pi}
     v2 = {length = max_proximity_value * 2, angle = max_proximity_angle - math.pi/2}
 	return vector.vec2_polar_sum(v1,v2)
 end
@@ -114,7 +113,7 @@ function get_temperature_readings()
 		  medium_temp = medium_temp+1
 	  end
   end
-  if medium_temp >= 4 then
+  if medium_temp == 4 then
 	  return true
   else
 	  return false
@@ -133,17 +132,20 @@ end
 --end 
 
 
-function read_range_and_bearing(i)
+function read_range_and_bearing()
+    closest_rab = nil
+    min_range = 200
     for _,rab in ipairs(robot.range_and_bearing) do
-        log("RAB Range" .. rab.range)
-        log("RAB Data" .. rab.data[i])
-        if rab.data[1] == 50 then
-            log("GO AWAY")
-            return {length = 6, angle = rab.horizontal_bearing+(math.pi)}
-        else
-            log("Nessun cambiamento")
-            return {length = 0, angle = 0}
+        --log("RAB Data        " .. rab.data[3])
+        if rab.data[4] == 50 and rab.range < min_range then
+            closest_rab = rab
+            min_range = rab.range
         end
+    end
+    if closest_rab ~= nil then
+        return {length = 6, angle = closest_rab.horizontal_bearing+(math.pi)}
+    else
+        return  {length = 0, angle = 0}
     end
 end
 
@@ -152,18 +154,25 @@ function write_range_and_bearing(i,n)
 end
 
 function count_assisting_robots()
-    assisting_robots = 1
+    assisting_robots = 0
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[2] == 25 then
-            assisting_robots = assisting_robots +1
+        if rab.data[3] == 1  then
+            assisting_robots = assisting_robots + 1
         end
     end
-    log("Assisting robots == " .. assisting_robots)
-    if assisting_robots >= 4 then
-        log("FIre Reached Capacity")
+    --log("Assisting robots == " .. assisting_robots)
+    if assisting_robots >= 3 then
         return true
     else
-        log("Still need help with fire")
         return false
     end
+end
+
+function check_antenna()
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[6] == 1 then
+            return true
+        end
+    end
+    return false
 end

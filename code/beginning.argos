@@ -6,7 +6,7 @@
   <!-- * General configuration * -->
   <!-- ************************* -->
   <framework>
-    <system threads="0" />
+    <system threads="4" />
     <experiment length="0" ticks_per_second="10"/>
   </framework>
  
@@ -27,18 +27,37 @@
         <footbot_proximity implementation="default" show_rays="false" noise_level="0.0" />
         <footbot_light implementation="rot_z_only" show_rays="false" noise_level="0.0" />
 		<footbot_motor_ground implementation="rot_z_only" noise_level="0.0" />
-		<range_and_bearing implementation="medium" medium="rab" />
+		<range_and_bearing implementation="medium" medium="rab" show_rays ="false"  />
 		<positioning implementation="default" noise_level="0.0" />
       </sensors>
       <params script="beginning.lua" />
     </lua_controller>
+    
+    
+    <lua_controller id="antenna">
+        <actuators>
+            <differential_steering implementation="default" noise_level="0.0"/>
+            <range_and_bearing implementation="default" />
+            <leds implementation="default" medium="leds" />
+        </actuators>
+
+        <sensors>
+            <differential_steering implementation="default" noise_level="0.0" />
+            <footbot_proximity implementation="default" show_rays="false" noise_level="0.0" />
+            <footbot_light implementation="rot_z_only" show_rays="false" noise_level="0.0" />
+            <footbot_motor_ground implementation="rot_z_only" noise_level="0.0" />
+            <range_and_bearing implementation="medium" medium="rab" show_rays ="false"  />
+            <positioning implementation="default" noise_level="0.0" />
+        </sensors>
+      <params script="antenna.lua" />
+      </lua_controller>
  
   </controllers>
  
   <!-- *********************** -->
   <!-- * Arena configuration * -->
   <!-- *********************** -->
-  <arena size="10, 10, 1" center="0,0,0.5" positional_grid_size="20,20,1">
+  <arena size="10, 10, 1" center="0,0,0.5">
 	<floor id="f" source="image" path="circle_fires.png" />
     <box id="bn" size="0.1, 10, 0.5" movable="false">
       <body position="4.9, 0, 0"  orientation="0,0,0" />
@@ -91,6 +110,34 @@
 	   intensity="1"
 	   medium="leds"/>
 	   
+	   
+	   <!-- -----------------------Spawn Antenna Robot---------------------- -->
+	   
+	   <foot-bot id="antenna0">
+      <controller config="antenna" />
+      <body position="-1.52,-3.88,0" orientation="0,0,0" />
+        </foot-bot>
+        
+        <foot-bot id="antenna1">
+      <controller config="antenna" />
+      <body position="3.10,-3.78,0" orientation="0,0,0" />
+        </foot-bot>
+        
+        <foot-bot id="antenna2">
+      <controller config="antenna" />
+      <body position="3.82,0.53,0" orientation="0,0,0" />
+    </foot-bot>
+    
+    <foot-bot id="antenna3">
+      <controller config="antenna" />
+      <body position="-0.5,0.5,0" orientation="0,0,0" />
+    </foot-bot>
+    
+    <foot-bot id="antenna4">
+      <controller config="antenna" />
+      <body position="-4,4,0" orientation="0,0,0" />
+    </foot-bot>
+	   
 	   <!-- -----------------------Wall configuration 1------------------------ -->
 	   
 	 
@@ -98,9 +145,12 @@
       <body position="2,-1.5,0" orientation="0,0,0" />
     </box>
     
-    <box id="bw334" size="0.1, 4.5, 0.5" movable="false">
+    <!-- <box id="bw334" size="0.1, 4.5, 0.5" movable="false">
       <body position="-3.2,2.7,0" orientation="0,0,0" />
-    </box>
+    </box> -->
+    
+    
+    <!-- ---------------------------Wall configuration 2 ----------------------------- -->
     
     <!--
     <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
@@ -141,14 +191,6 @@
 		</foot-bot>
 		</entity>
 	 </distribute>
-
-    <!-- <distribute>
-      <position method="uniform" min="-4.9,-4.9,0" max="-2,-2,0" />
-      <orientation method="uniform" min="0,0,0" max="360,0,0" />
-      <entity quantity="10" max_trials="100">
-        <box id="o" size="0.2, 0.2, 0.2" movable="false" />
-      </entity>
-    </distribute> -->
   </arena>
  
   <!-- ******************* -->
@@ -163,7 +205,7 @@
   <!-- ********* -->
   <media>
     <led id="leds" />
-	<range_and_bearing id="rab" index="grid" grid_size="20,20,1" />
+	<range_and_bearing id="rab" index="grid" grid_size="1,1,1" />
   </media>
 
 	
