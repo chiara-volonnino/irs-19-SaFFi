@@ -75,36 +75,36 @@
     
     <!-- -----------------Spawn light on fires-------------------- -->
  
-    <light id="light1"
+    <light id="light0"
            position="-1.52,-3.88,0.5"
            orientation="0,0,0"
            color="red"
            intensity="1"
            medium="leds"/>
 	
+	<light id="light1"
+	   position="3.10,-3.82,0.5"
+	   orientation="0,0,0"
+	   color="red"
+	   intensity="1"
+	   medium="leds"/>
+	   
 	<light id="light2"
-	   position="3.10,-3.78,0.5"
+	   position="3.93,0.55,0.5"
 	   orientation="0,0,0"
 	   color="red"
 	   intensity="1"
 	   medium="leds"/>
 	   
-	   <light id="light3"
-	   position="3.82,0.53,0.5"
+   <light id="light3"
+	   position="-0.48,0.52,0.5"
 	   orientation="0,0,0"
 	   color="red"
 	   intensity="1"
 	   medium="leds"/>
 	   
-	   <light id="light4"
-	   position="-0.5,0.5,0.5"
-	   orientation="0,0,0"
-	   color="red"
-	   intensity="1"
-	   medium="leds"/>
-	   
-	   <light id="light5"
-	   position="-4.,4,0.5"
+   <light id="light4"
+	   position="-4.14,4.14,0.5"
 	   orientation="0,0,0"
 	   color="red"
 	   intensity="1"
@@ -113,29 +113,29 @@
 	   
 	   <!-- -----------------------Spawn Antenna Robot---------------------- -->
 	   
-	   <foot-bot id="antenna0">
-      <controller config="antenna" />
-      <body position="-1.52,-3.88,0" orientation="0,0,0" />
-        </foot-bot>
-        
-        <foot-bot id="antenna1">
-      <controller config="antenna" />
-      <body position="3.10,-3.78,0" orientation="0,0,0" />
-        </foot-bot>
-        
-        <foot-bot id="antenna2">
-      <controller config="antenna" />
-      <body position="3.82,0.53,0" orientation="0,0,0" />
+	<foot-bot id="antenna0">
+      	<controller config="antenna" />
+      	<body position="-1.52,-3.88,0" orientation="0,0,0" />
     </foot-bot>
+        
+	<foot-bot id="antenna1">
+		<controller config="antenna" />
+		<body position="3.10,-3.82,0" orientation="0,0,0" />
+	</foot-bot>
+        
+	<foot-bot id="antenna2">
+		<controller config="antenna" />
+		<body position="3.93,0.55,0" orientation="0,0,0" />
+	</foot-bot>
     
     <foot-bot id="antenna3">
-      <controller config="antenna" />
-      <body position="-0.5,0.5,0" orientation="0,0,0" />
+      	<controller config="antenna" />
+      	<body position="-0.48,0.52,0" orientation="0,0,0" />
     </foot-bot>
     
     <foot-bot id="antenna4">
-      <controller config="antenna" />
-      <body position="-4,4,0" orientation="0,0,0" />
+      	<controller config="antenna" />
+      	<body position="-4.14,4.14,0" orientation="0,0,0" />
     </foot-bot>
 	   
 	   <!-- -----------------------Wall configuration 1------------------------ -->
@@ -179,9 +179,6 @@
     </box>
     -->
     
-    
-	   
-
 	 <distribute>
 		<position method="uniform" min="-4.9,-2.7,0" max="-3.7,-1.7,0" />
 		<orientation method="uniform" min="0,0,0" max="360,0,0" />
