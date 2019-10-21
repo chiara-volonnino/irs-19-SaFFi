@@ -48,7 +48,7 @@ function count_assisting_robots()
             assisting_robots = assisting_robots + 1
         end
     end
-    --log("Assisting robots == " .. assisting_robots)
+    log("Assisting robots == " .. assisting_robots)
     if assisting_robots == 4 then
         return true
     else
