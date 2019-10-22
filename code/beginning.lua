@@ -113,20 +113,26 @@ end
 
 
 function read_range_and_bearing()
-    lala = false
-    rabbb = nil
+    attract = false
+    repulse = false
+    rabbi = nil
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[4] == 1 then 
-            log("DATA:   " .. rab.data[4])
-            lala = true           
-            rabbb = rab
+        if rab.data[4] == 1 and not repulse then  
+            attract = true 
+            rabbi = rab
+        elseif rab.data[4] == 2 and rab.range < 40 then
+            repulse = true
+            rabbi = rab
         end
-    end
-    if lala then
-        log("lalabtrue")
-        return  {length = 4,  angle = rabbb.horizontal_bearing}
+    end    
+    if attract then
+        log("Attraggo")
+        return  {length = 4,  angle = rabbi.horizontal_bearing}
+    elseif repulse then
+        log("Respingo")
+        return  {length = 4,  angle = rabbi.horizontal_bearing - math.pi}
     else
-        log("lalafalse")
+    log("Nulla")
      return {length = 0, angle = 0}
     end
     
@@ -165,7 +171,7 @@ end
 
 function check_antenna()
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[6] == 1 then
+        if rab.data[6] == 1 and rab.range < 30 then
             return true
         end
     end
