@@ -1,119 +1,173 @@
--- Put your global variables here
+local vector = require "vector"
 
-MOVE_STEPS = 10
-n_steps = 0
+light_sensor = nil
+motor_ground = nil
+robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
+
+step = 0
+local v1 = {}
+local v2 = {}
 
 
---[[ This function is executed every time you press the 'execute'
-     button ]]
 function init()
-    n_steps = 0
+	L = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
-    
-    max_intensity = 0
-    max_light_sensor_index = 1
 end
 
-function getKeysSortedByValue(tbl,sortFunc)
-    local keys = {}
-    for key in pairs(tbl) do table.insert(keys,key) end
-    table.sort(keys, function(a,b) return sortFunc(tbl[a], tbl[b]) end)
-    return keys
+function reset()
+	robot.leds.set_all_colors("black")
+	robot.wheels.set_velocity(0,0)
+end
+
+function destroy()
+   -- put your code here
 end
 
 function step()
-    
-    n_steps = n_steps + 1
-	if n_steps % MOVE_STEPS == 0 then
-		max_intensity = 0
-        max_light_sensor_index = 1
+	if robot_state == 0 then            
+		v1 = vector.vec2_polar_sum(wander(), avoid_obstacle())
         
-        intensities = {0,0,0,0}
-        proximities = {0,0,0,0}
-        
-        for i=1,4 do
-            for k=1,6 do
-               intensities[5-i] = intensities[5-i] + robot.light[(i-1)*6+k].value
-               proximities[5-i] = proximities[5-i] + robot.proximity[(i-1)*6+k].value
-            end
+        v5 = read_range_and_bearing(4)
+        v3 = vector.vec2_polar_sum(v1,v5)
+        wheels_l, wheels_r = trasformation_vector_to_velocity(v3)
+        robot.leds.set_all_colors("white")
+		robot.wheels.set_velocity(wheels_l, wheels_r)
+		if get_temperature_readings() then
+            robot.leds.set_all_colors("red")
+			robot_state = 1
+		else
+			log("")
+		end
+	elseif robot_state == 1 then
+        write_range_and_bearing(3,1)
+		robot.wheels.set_velocity(0, 0)
+        if check_antenna() then
+            robot.leds.set_all_colors("green")
+            robot_state = 2
         end
-        
-        log("intensities:")
-        log(intensities[1])
-        log(intensities[2])
-        log(intensities[3])
-        log(intensities[4])
-
-        priorities = getKeysSortedByValue(intensities, function(a,b) return a > b end)
-        anti_priorities = getKeysSortedByValue(proximities, function(a,b) return a > b end)
-        
-        blocked_quadrant = 0
-        if proximities[anti_priorities[1]] ~= 0 then 
-            blocked_quadrant = anti_priorities[1]
-        end
-        
-        priority_index = 1
-        
-        log("priorities[1] = " .. priorities[1])
-        log("blocked quadrant = " .. blocked_quadrant)
-        
-        for i=1,4 do
-            if priorities[i] ~= blocked_quadrant then
-                priority_index = priorities[i]
-                break
-            end
-        end
-        
-        log("moving towards quadrant: " .. priority_index)
-        
-        high_v = 8
-        low_v = 6
-        if blocked_quadrant ~= 0 then
-            low_v = 1
-        end
-        
-        if priority_index == 4 then
-            left_v = low_v
-            right_v = high_v
-        elseif priority_index == 3 then
-            left_v = -low_v
-            right_v = -high_v
-        elseif priority_index == 2 then
-            left_v = -high_v
-            right_v = -low_v
-        elseif priority_index == 1 then
-            left_v = high_v
-            right_v = low_v
-        end
-        
-        if intensities[priorities[1]] >= 1.3 then
-            left_v = 0
-            right_v = 0
-        end
-        
-        robot.wheels.set_velocity(left_v,right_v)
+	elseif robot_state == 2 then
+		robot.wheels.set_velocity(0, 0)
+	else 
+		--log("robot in state n")
 	end
-
 end
 
+-------------- Controller functions --------------
 
+function wander() 
+	log("Robot is in wander state")
+	--robot.range_and_bearing.set_data(1, 0)
+	return {length = robot.random.uniform(2), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
+end 
 
---[[ This function is executed every time you press the 'reset'
-     button in the GUI. It is supposed to restore the state
-     of the controller to whatever it was right after init() was
-     called. The state of sensors and actuators is reset
-     automatically by ARGoS. ]]
-function reset()
-	left_v = robot.random.uniform(0,15)
-	right_v = robot.random.uniform(0,15)
-	robot.wheels.set_velocity(left_v,right_v)
-	n_steps = 0
-	robot.leds.set_all_colors("black")
+function avoid_obstacle()
+	max_proximity_value = 0
+	max_proximity_angle = 0
+	for _, proximity_sensor in pairs(robot.proximity) do
+		if proximity_sensor.value > max_proximity_value then
+			max_proximity_value = proximity_sensor.value
+			max_proximity_angle = proximity_sensor.angle
+		end
+	end
+    v1 = {length = max_proximity_value * 6, angle = max_proximity_angle + math.pi}
+    v2 = {length = max_proximity_value * 2, angle = max_proximity_angle - math.pi/2}
+	return vector.vec2_polar_sum(v1,v2)
 end
 
+function stop_near_fire()
+end        
+    
 
---[[ This function is executed only once, when the robot is removed
-     from the simulation ]]
-function destroy()
-   -- put your code here
+-------------- Extra functions --------------
+
+function trasformation_vector_to_velocity(v)
+	v_left = v.length - ((v.angle * L)/2)
+	v_right = v.length + ((v.angle * L)/2)
+  return v_left, v_right
+end
+
+function get_temperature_readings()
+  medium_temp = 0
+  for _, motor_ground in pairs(robot.motor_ground) do
+	  if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
+		  medium_temp = medium_temp+1
+	  end
+  end
+  if medium_temp == 4 then
+	  return true
+  else
+	  return false
+  end
+end
+
+--function countRAB()
+	--number_robot_sensed = 0
+	--for _, rab in ipairs(robot.range_and_bearing) do
+		--if rab.range < 30 and rab.data[1] == 1 then   
+			--number_robot_sensed = number_robot_sensed + 1
+			--log("in :" .. number_robot_sensed)
+		--end
+	--end
+	--return number_robot_sensed
+--end 
+
+
+function read_range_and_bearing()
+    lala = false
+    rabbb = nil
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[4] == 1 then 
+            log("DATA:   " .. rab.data[4])
+            lala = true           
+            rabbb = rab
+        end
+    end
+    if lala then
+        log("lalabtrue")
+        return  {length = 4,  angle = rabbb.horizontal_bearing}
+    else
+        log("lalafalse")
+     return {length = 0, angle = 0}
+    end
+    
+    
+    
+    --if closest_rab ~= nil and closest_rab.data[4] == 2 then
+       -- log("Respinto")
+        --return {length = 4, angle = closest_rab.horizontal_bearing+(math.pi)}
+    --elseif closest_rab ~= nil and closest_rab.data[4] == 1 then
+        --log("Attratto")
+        
+    --else
+        --log("Non vedo")
+        --return {length = 0, angle = 0}
+   -- end
+end
+
+function write_range_and_bearing(i,n)
+    robot.range_and_bearing.set_data(i,n)
+end
+
+function count_assisting_robots()
+    assisting_robots = 0
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[3] == 1  then
+            assisting_robots = assisting_robots + 1
+        end
+    end
+    log("Assisting robots == " .. assisting_robots)
+    if assisting_robots >= 3 then
+        return true
+    else
+        return false
+    end
+end
+
+function check_antenna()
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[6] == 1 then
+            return true
+        end
+    end
+    return false
 end
