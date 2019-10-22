@@ -89,7 +89,7 @@ function avoid_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-    v1 = {length = max_proximity_value * 4, angle = max_proximity_angle + math.pi}
+    v1 = {length = max_proximity_value * 6, angle = max_proximity_angle + math.pi}
     v2 = {length = max_proximity_value * 2, angle = max_proximity_angle - math.pi/2}
 	return vector.vec2_polar_sum(v1,v2)
 end
@@ -134,8 +134,9 @@ end
 
 function read_range_and_bearing()
     closest_rab = nil
-    min_range = 200
+    min_range = 1000
     for _,rab in ipairs(robot.range_and_bearing) do
+        log("Range      " .. rab.range)
         --log("RAB Data        " .. rab.data[3])
         if rab.data[4] == 50 and rab.range < min_range then
             closest_rab = rab
@@ -143,7 +144,7 @@ function read_range_and_bearing()
         end
     end
     if closest_rab ~= nil then
-        return {length = 6, angle = closest_rab.horizontal_bearing+(math.pi)}
+        return {length = 9, angle = closest_rab.horizontal_bearing+(math.pi)}
     else
         return  {length = 0, angle = 0}
     end
