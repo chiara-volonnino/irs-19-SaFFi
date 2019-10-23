@@ -1,16 +1,22 @@
 local vector = require "vector"
 
-light_sensor = nil
-motor_ground = nil
-robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
+local SEARCH_FIRE = 0
+local ATTEMPT_NEIGHBOURS = 1
+local DEAL_FIRE = 2
 
-step = 0
+local GREEN_LED = "green"
+local RED_LED = "red"
+local BLACK = "black"
+
+local motor_ground = nil
+
+local robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
+
 local v1 = {}
 local v2 = {}
 
-
 function init()
-	L = robot.wheels.axis_length
+	distance_between_2_wheels = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
 end
 
@@ -24,28 +30,24 @@ function destroy()
 end
 
 function step()
-	if robot_state == 0 then            
+	if robot_state == SEARCH_FIRE then            
 		v1 = vector.vec2_polar_sum(wander(), avoid_obstacle())
-        
-        v5 = read_range_and_bearing(4)
-        v3 = vector.vec2_polar_sum(v1,v5)
-        wheels_l, wheels_r = trasformation_vector_to_velocity(v3)
+        v2 = vector.vec2_polar_sum(v1,read_range_and_bearing(4))
+        wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
         robot.leds.set_all_colors("white")
 		robot.wheels.set_velocity(wheels_l, wheels_r)
 		if get_temperature_readings() then
             robot.leds.set_all_colors("red")
-			robot_state = 1
-		else
-			log("")
+			robot_state = ATTEMPT_NEIGHBOURS
 		end
-	elseif robot_state == 1 then
+	elseif robot_state == ATTEMPT_NEIGHBOURS then
         write_range_and_bearing(3,1)
 		robot.wheels.set_velocity(0, 0)
         if check_antenna() then
             robot.leds.set_all_colors("green")
-            robot_state = 2
+            robot_state = DEAL_FIRE
         end
-	elseif robot_state == 2 then
+	elseif robot_state == DEAL_FIRE then
 		robot.wheels.set_velocity(0, 0)
 	else 
 		--log("robot in state n")
@@ -53,11 +55,11 @@ function step()
 end
 
 -------------- Controller functions --------------
-
 function wander() 
-	log("Robot is in wander state")
-	--robot.range_and_bearing.set_data(1, 0)
-	return {length = robot.random.uniform(2), angle = robot.random.uniform(-math.pi/4, math.pi/4)} -- TODO: settare il random value
+	return {
+        length = robot.random.uniform(2), 
+        angle = robot.random.uniform(-math.pi/4, math.pi/4)
+    }
 end 
 
 function avoid_obstacle()
@@ -69,20 +71,23 @@ function avoid_obstacle()
 			max_proximity_angle = proximity_sensor.angle
 		end
 	end
-    v1 = {length = max_proximity_value * 6, angle = max_proximity_angle + math.pi}
-    v2 = {length = max_proximity_value * 2, angle = max_proximity_angle - math.pi/2}
+    v1 = {
+        length = max_proximity_value * 6, 
+        angle = max_proximity_angle + math.pi
+    }
+    v2 = {
+        length = max_proximity_value * 2, 
+        angle = max_proximity_angle - math.pi/2
+    }
 	return vector.vec2_polar_sum(v1,v2)
-end
+end    
 
 function stop_near_fire()
-end        
-    
-
+end 
 -------------- Extra functions --------------
-
 function trasformation_vector_to_velocity(v)
-	v_left = v.length - ((v.angle * L)/2)
-	v_right = v.length + ((v.angle * L)/2)
+	v_left = v.length - ((v.angle * distance_between_2_wheels)/2)
+	v_right = v.length + ((v.angle * distance_between_2_wheels)/2)
   return v_left, v_right
 end
 
@@ -100,18 +105,6 @@ function get_temperature_readings()
   end
 end
 
---function countRAB()
-	--number_robot_sensed = 0
-	--for _, rab in ipairs(robot.range_and_bearing) do
-		--if rab.range < 30 and rab.data[1] == 1 then   
-			--number_robot_sensed = number_robot_sensed + 1
-			--log("in :" .. number_robot_sensed)
-		--end
-	--end
-	--return number_robot_sensed
---end 
-
-
 function read_range_and_bearing()
     attract = false
     repulse = false
@@ -127,51 +120,44 @@ function read_range_and_bearing()
     end    
     if attract then
         log("Attraggo")
-        return  {length = 4,  angle = rabbi.horizontal_bearing}
+        return {
+            length = 4,  
+            angle = rabbi.horizontal_bearing
+        }
     elseif repulse then
         log("Respingo")
-        return  {length = 4,  angle = rabbi.horizontal_bearing - math.pi}
+        return {
+            length = 4,  
+            angle = rabbi.horizontal_bearing - math.pi}
     else
     log("Nulla")
-     return {length = 0, angle = 0}
+     return {
+         length = 0, 
+         angle = 0}
     end
-    
-    
-    
-    --if closest_rab ~= nil and closest_rab.data[4] == 2 then
-       -- log("Respinto")
-        --return {length = 4, angle = closest_rab.horizontal_bearing+(math.pi)}
-    --elseif closest_rab ~= nil and closest_rab.data[4] == 1 then
-        --log("Attratto")
-        
-    --else
-        --log("Non vedo")
-        --return {length = 0, angle = 0}
-   -- end
 end
 
 function write_range_and_bearing(i,n)
     robot.range_and_bearing.set_data(i,n)
 end
 
-function count_assisting_robots()
-    assisting_robots = 0
-    for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[3] == 1  then
-            assisting_robots = assisting_robots + 1
-        end
-    end
-    log("Assisting robots == " .. assisting_robots)
-    if assisting_robots >= 3 then
-        return true
-    else
-        return false
-    end
-end
+--function count_assisting_robots()
+--    assisting_robots = 0
+--    for _,rab in ipairs(robot.range_and_bearing) do
+--        if rab.data[3] == 1  then
+--            assisting_robots = assisting_robots + 1
+--        end
+--    end
+--    if assisting_robots >= 3 then
+--        return true
+--    else
+--        return false
+--    end
+--end
 
 function check_antenna()
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[6] == 1 and rab.range < 30 then
+        if rab.data[6] == 1 and rab.range < 50 then
             return true
         end
     end
