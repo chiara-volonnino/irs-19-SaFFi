@@ -32,22 +32,25 @@ end
 function step()
 	if robot_state == SEARCH_FIRE then            
 		v1 = vector.vec2_polar_sum(wander(), avoid_obstacle())
-        v2 = vector.vec2_polar_sum(v1,read_range_and_bearing(4))
-        wheels_l, wheels_r = trasformation_vector_to_velocity(v2)
+        v2 = vector.vec2_polar_sum(stop_near_fire(), read_range_and_bearing(4))
+        v3 = vector.vec2_polar_sum(v1, v2)
+        wheels_l, wheels_r = trasformation_vector_to_velocity(v3)
         robot.leds.set_all_colors("white")
-		robot.wheels.set_velocity(wheels_l, wheels_r)
+		robot.wheels.set_velocity(wheels_normalization(wheels_l, 1, 10), wheels_normalization(wheels_r, 1, 10))
 		if get_temperature_readings() then
             robot.leds.set_all_colors("red")
 			robot_state = ATTEMPT_NEIGHBOURS
 		end
 	elseif robot_state == ATTEMPT_NEIGHBOURS then
         write_range_and_bearing(3,1)
+        write_range_and_bearing(5,1)
 		robot.wheels.set_velocity(0, 0)
         if check_antenna() then
             robot.leds.set_all_colors("green")
             robot_state = DEAL_FIRE
         end
-	elseif robot_state == DEAL_FIRE then
+    elseif robot_state == DEAL_FIRE then
+        write_range_and_bearing(5,2)
 		robot.wheels.set_velocity(0, 0)
 	else 
 		--log("robot in state n")
@@ -57,7 +60,7 @@ end
 -------------- Controller functions --------------
 function wander() 
 	return {
-        length = robot.random.uniform(2), 
+        length = robot.random.uniform(5), 
         angle = robot.random.uniform(-math.pi/4, math.pi/4)
     }
 end 
@@ -76,13 +79,41 @@ function avoid_obstacle()
         angle = max_proximity_angle + math.pi
     }
     v2 = {
-        length = max_proximity_value * 2, 
-        angle = max_proximity_angle - math.pi/2
+        length = max_proximity_value * 3, 
+        angle = max_proximity_angle + math.pi/2
     }
 	return vector.vec2_polar_sum(v1,v2)
 end    
 
 function stop_near_fire()
+    attract = false
+    repulse = false
+    rabbi = nil
+    for _,rab in ipairs(robot.range_and_bearing) do
+        if rab.data[5] == 1 and not repulse then  
+            attract = true 
+            rabbi = rab
+        elseif rab.data[5] == 2 and rab.range < 40 then
+            repulse = true
+            rabbi = rab
+        end
+    end 
+    if not check_antenna() and attract then
+        return {
+            length = range_and_bearing_normaliation(rabbi.range) * 2,  
+            angle = rabbi.horizontal_bearing
+        }
+    elseif check_antenna() and repulse then
+        return {
+            length = range_and_bearing_normaliation(rabbi.range) * 4,  
+            angle = rabbi.horizontal_bearing - math.pi
+        }
+    else
+        return {
+            length = 0,  
+            angle = 0
+        }
+    end
 end 
 -------------- Extra functions --------------
 function trasformation_vector_to_velocity(v)
@@ -118,42 +149,31 @@ function read_range_and_bearing()
             rabbi = rab
         end
     end    
-    if attract then
-        log("Attraggo")
+    if attract and rabbi.range < 40 then
         return {
-            length = 4,  
+            length = range_and_bearing_normaliation(rabbi.range) * 2,  
+            angle = rabbi.horizontal_bearing        }
+    elseif attract then
+        return {
+            length = range_and_bearing_normaliation(rabbi.range) * 4,  
             angle = rabbi.horizontal_bearing
         }
     elseif repulse then
-        log("Respingo")
         return {
-            length = 4,  
-            angle = rabbi.horizontal_bearing - math.pi}
+            length = range_and_bearing_normaliation(rabbi.range) * 4,  
+            angle = rabbi.horizontal_bearing - math.pi
+        }
     else
-    log("Nulla")
-     return {
-         length = 0, 
-         angle = 0}
+        return {
+            length = 0, 
+            angle = 0
+        }
     end
 end
 
 function write_range_and_bearing(i,n)
     robot.range_and_bearing.set_data(i,n)
 end
-
---function count_assisting_robots()
---    assisting_robots = 0
---    for _,rab in ipairs(robot.range_and_bearing) do
---        if rab.data[3] == 1  then
---            assisting_robots = assisting_robots + 1
---        end
---    end
---    if assisting_robots >= 3 then
---        return true
---    else
---        return false
---    end
---end
 
 function check_antenna()
     for _,rab in ipairs(robot.range_and_bearing) do
@@ -162,4 +182,12 @@ function check_antenna()
         end
     end
     return false
+end
+
+function range_and_bearing_normaliation(value) 
+    return 1 - 1 / value
+end
+
+function wheels_normalization(value, min_value, max_value)
+    return  ((value - min_value) / (max_value - min_value)) * 10
 end
