@@ -5,10 +5,12 @@ local GREEN_LED, RED_LED, BLACK_LED = "green", "red", "black"
 local ROBOT_PRESENCE, ANTENNA_FIELD, ROBOT_FIELD, ANTENNA_COMUNICATION = 1, 2, 3, 4
 local MIN_WHEELS, MAX_WHEELS = 1, 10
 local LOW_RANGE = 50
-local ATTRACT_WRITER, REPULSE_WRITER = 1, 2
+local ATTRACT_WRITER, REPULSE_WRITER = 1, 2 
+local MAX_MOTOR_GROUND_SENSOR = 4
+local VERY_LOW_POWER, LOW_POWER, MEDIUM_POWER, HIGH_POWER, VERY_HIGH_POWER = 2, 3, 4, 6, 10
+local FIRE_GROUND, TEMPERATURE_GROUND = 0.2, 0.7
 
 -- CONSTANTI MOLTIPLICATIVE
-
 local motor_ground = nil
 local robot_state = 0
 local drift_vector, constrol_vector, behaviors_vector = {}, {}, {}
@@ -71,11 +73,11 @@ function avoid_obstacle()
 		end
 	end
     v1 = {
-        length = max_proximity_value * 6, 
+        length = max_proximity_value * HIGH_POWER, 
         angle = max_proximity_angle + math.pi
     }
     v2 = {
-        length = max_proximity_value * 3, 
+        length = max_proximity_value * LOW_POWER, 
         angle = max_proximity_angle + math.pi/2
     }
 	return vector.vec2_polar_sum(v1,v2)
@@ -85,12 +87,12 @@ function stop_near_fire()
     neighbors_result = check_neighbors(ROBOT_FIELD)
     if not check_antenna() and neighbors_result.attract_field then
         return {
-            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 2,  
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * VERY_LOW_POWER,  
             angle = neighbors_result.rab.horizontal_bearing
         }
     elseif check_antenna() and repulse then
         return {
-            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 4,  
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * MEDIUM_POWER,  
             angle = neighbors_result.rab.horizontal_bearing - math.pi
         }
     else
@@ -109,13 +111,13 @@ function trasformation_vector_to_velocity(v)
 end
 
 function get_temperature_readings()
-  medium_temp = 0
+  motor_ground_number = 0
   for _, motor_ground in pairs(robot.motor_ground) do
-	  if robot.motor_ground[_].value >= 0.2 and robot.motor_ground[_].value <= 0.7 then
-		  medium_temp = medium_temp+1
+	  if robot.motor_ground[_].value >= FIRE_GROUND and robot.motor_ground[_].value <= TEMPERATURE_GROUND then
+        motor_ground_number = motor_ground_number + 1
 	  end
   end
-  if medium_temp == 4 then
+  if motor_ground_number == MAX_MOTOR_GROUND_SENSOR then
 	  return true
   else
 	  return false
@@ -126,16 +128,16 @@ function read_range_and_bearing()
     neighbors_result = check_neighbors(ANTENNA_FIELD)
     if neighbors_result.attract_field and neighbors_result.rab.range < LOW_RANGE then
         return {
-            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 2,  
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * VERY_LOW_POWER,  
             angle = neighbors_result.rab.horizontal_bearing        }
     elseif neighbors_result.attract_field then
         return {
-            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 4,  
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * MEDIUM_POWER,  
             angle = neighbors_result.rab.horizontal_bearing
         }
     elseif neighbors_result.repulse_field then
         return {
-            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 4,  
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * MEDIUM_POWER,  
             angle = neighbors_result.rab.horizontal_bearing - math.pi
         }
     else
