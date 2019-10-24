@@ -2,8 +2,12 @@ local vector = require "vector"
 
 local SEARCH_FIRE, ATTEMPT_NEIGHBOURS, DEAL_FIRE = 0, 1, 2
 local GREEN_LED, RED_LED, BLACK_LED = "green", "red", "black"
-local ROBOT_PRESENCE, ANTENNA_FIELD, ROBOT_FIELD, ANTENNA_COMUNICATION = 3, 4, 5, 6
+local ROBOT_PRESENCE, ANTENNA_FIELD, ROBOT_FIELD, ANTENNA_COMUNICATION = 1, 2, 3, 4
 local MIN_WHEELS, MAX_WHEELS = 1, 10
+local LOW_RANGE = 50
+local ATTRACT_WRITER, REPULSE_WRITER = 1, 2
+
+-- CONSTANTI MOLTIPLICATIVE
 
 local motor_ground = nil
 local robot_state = 0
@@ -35,15 +39,15 @@ function step()
 			robot_state = ATTEMPT_NEIGHBOURS
 		end
 	elseif robot_state == ATTEMPT_NEIGHBOURS then
-        write_range_and_bearing(3,1)
-        write_range_and_bearing(ROBOT_FIELD,1)
+        write_range_and_bearing(ROBOT_PRESENCE, ATTRACT_WRITER)
+        write_range_and_bearing(ROBOT_FIELD, ATTRACT_WRITER)
 		robot.wheels.set_velocity(0, 0)
         if check_antenna() then
             robot.leds.set_all_colors(GREEN_LED)
             robot_state = DEAL_FIRE
         end
     elseif robot_state == DEAL_FIRE then
-        write_range_and_bearing(ROBOT_FIELD,2)
+        write_range_and_bearing(ROBOT_FIELD, REPULSE_WRITER)
 		robot.wheels.set_velocity(0, 0)
 	else 
 		--log("robot in state n")
@@ -59,8 +63,7 @@ function wander()
 end 
 
 function avoid_obstacle()
-	max_proximity_value = 0
-	max_proximity_angle = 0
+	max_proximity_value, max_proximity_angle = 0, 0
 	for _, proximity_sensor in pairs(robot.proximity) do
 		if proximity_sensor.value > max_proximity_value then
 			max_proximity_value = proximity_sensor.value
@@ -119,32 +122,21 @@ function get_temperature_readings()
   end
 end
 
-function read_range_and_bearing()
-    attract = false
-    repulse = false
-    rabbi = nil
-    for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[4] == 1 and not repulse then  
-            attract = true 
-            rabbi = rab
-        elseif rab.data[4] == 2 and rab.range < 40 then
-            repulse = true
-            rabbi = rab
-        end
-    end    
-    if attract and rabbi.range < 40 then
+function read_range_and_bearing()  
+    neighbors_result = check_neighbors(ANTENNA_FIELD)
+    if neighbors_result.attract_field and neighbors_result.rab.range < LOW_RANGE then
         return {
-            length = range_and_bearing_normaliation(rabbi.range) * 2,  
-            angle = rabbi.horizontal_bearing        }
-    elseif attract then
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 2,  
+            angle = neighbors_result.rab.horizontal_bearing        }
+    elseif neighbors_result.attract_field then
         return {
-            length = range_and_bearing_normaliation(rabbi.range) * 4,  
-            angle = rabbi.horizontal_bearing
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 4,  
+            angle = neighbors_result.rab.horizontal_bearing
         }
-    elseif repulse then
+    elseif neighbors_result.repulse_field then
         return {
-            length = range_and_bearing_normaliation(rabbi.range) * 4,  
-            angle = rabbi.horizontal_bearing - math.pi
+            length = range_and_bearing_normaliation(neighbors_result.rab.range) * 4,  
+            angle = neighbors_result.rab.horizontal_bearing - math.pi
         }
     else
         return {
@@ -160,7 +152,7 @@ end
 
 function check_antenna()
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[ANTENNA_COMUNICATION] == 1 and rab.range < 50 then
+        if rab.data[ANTENNA_COMUNICATION] == 1 and rab.range < LOW_RANGE then
             return true
         end
     end
@@ -171,10 +163,10 @@ function check_neighbors(range_and_bearing_data)
     attract_field, repulse_field = false, false
     effective_rab = nil
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[range_and_bearing_data] == 1 and not repulse_field then  
+        if rab.data[range_and_bearing_data] == ATTRACT_WRITER and not repulse_field then  
             attract_field = true 
             effective_rab = rab
-        elseif rab.data[range_and_bearing_data] == 2 and rab.range < 40 then
+        elseif rab.data[range_and_bearing_data] == REPULSE_WRITERF and rab.range < LOW_RANGE then
             repulse_field = true
             effective_rab = rab
         end

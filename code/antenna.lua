@@ -1,18 +1,12 @@
-local vector = require "vector"
+local HIGH_TEMPERATURE, LOW_TEMPERATURE = 0, 1
+local ROBOT_PRESENCE, ANTENNA_FIELD, ANTENNA_COMUNICATION = 1, 2, 4
+local ATTRACT_WRITER, REPULSE_WRITER = 1, 2
+local MAX_NUMBER_OF_ROBOTS = 4
 
-light_sensor = nil
-motor_ground = nil
-robot_state = 0  -- 0 = find light, 1 = reached fire, 2 = following robot, 3 = fleeing from fire
-
-step = 0
-local v1 = {}
-local v2 = {}
-
+local robot_state = 0
 
 function init()
-	L = robot.wheels.axis_length
 	robot.leds.set_all_colors("black")
-	--robot.range_and_bearing.set_data(1, 1)
 end
 
 function reset()
@@ -26,20 +20,19 @@ end
 
 function step()
     robot.wheels.set_velocity(0,0)
-    if robot_state == 0 then
-        write_range_and_bearing(4,1)
+    if robot_state == HIGH_TEMPERATURE then
+        write_range_and_bearing(ANTENNA_FIELD, ATTRACT_WRITER)
         if count_assisting_robots() then
-            write_range_and_bearing(6,1)
-            robot_state = 1
+            write_range_and_bearing(ANTENNA_COMUNICATION, ATTRACT_WRITER)
+            robot_state = LOW_TEMPERATURE
             robot.leds.set_all_colors("white")
         end
-    elseif robot_state == 1 then
-        write_range_and_bearing(4,2)
+    elseif robot_state == LOW_TEMPERATURE then
+        write_range_and_bearing(ANTENNA_FIELD, REPULSE_WRITER)
     end
 end
 
 -------------- Controller functions --------------
-
 function write_range_and_bearing(i,n)
     robot.range_and_bearing.set_data(i,n)
 end
@@ -47,12 +40,11 @@ end
 function count_assisting_robots()
     assisting_robots = 0
     for _,rab in ipairs(robot.range_and_bearing) do
-        if rab.data[3] == 1  then
+        if rab.data[ROBOT_PRESENCE] == ATTRACT_WRITER  then
             assisting_robots = assisting_robots + 1
         end
     end
-    --log("Assisting robots == " .. assisting_robots)
-    if assisting_robots == 4 then
+    if assisting_robots == MAX_NUMBER_OF_ROBOTS then
         return true
     else
         return false
