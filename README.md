@@ -19,6 +19,5 @@ A brief presentation of the system can be found in doc folder or in downloads:
 
 
 ## Team members
-Chiara Volonnino (chiara.volonnino@studio.unibo.it)
-
+Chiara Volonnino (chiara.volonnino@studio.unibo.it)  
 Nicola Atti (nicola.atti@studio.unibo.it)
