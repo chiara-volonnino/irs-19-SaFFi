@@ -1,4 +1,4 @@
-# ISS-18-ddr
+# SaFFi - SwArm FireFighters
 Project for the course of "Intelligent Robotic Systems" AA.2018/2019
 
 https://www.unibo.it/en/teaching/course-unit-catalogue/course-unit/2019/412681
