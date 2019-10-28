@@ -169,6 +169,7 @@ function check_neighbors(range_and_bearing_data)
             attract_field = true 
             effective_rab = rab
         elseif rab.data[range_and_bearing_data] == REPULSE_WRITER and rab.range < LOW_RANGE then
+            log("Repulse")
             repulse_field = true
             attract_field = false
             effective_rab = rab

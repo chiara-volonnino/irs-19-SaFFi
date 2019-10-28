@@ -30,7 +30,7 @@
 		<range_and_bearing implementation="medium" medium="rab" show_rays ="true"  />
 		<positioning implementation="default" noise_level="0.0" />
       </sensors>
-      <params script="fire_fighters.lua" />
+      <params script="fire_fighter.lua" />
     </lua_controller>
     
     
