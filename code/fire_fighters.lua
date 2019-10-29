@@ -98,7 +98,7 @@ function listen_neighbors_for_help()
             length = range_and_bearing_normaliation(neighbors_result.rab.range) * VERY_LOW_POWER,  
             angle = neighbors_result.rab.horizontal_bearing
         }
-    elseif check_antenna() and repulse then
+    elseif check_antenna() and repulse and neighbors_result.range < LOW_RANGE  then
         return {
             length = range_and_bearing_normaliation(neighbors_result.rab.range) * MEDIUM_POWER,  
             angle = neighbors_result.rab.horizontal_bearing - math.pi
