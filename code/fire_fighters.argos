@@ -30,7 +30,7 @@
 		<range_and_bearing implementation="medium" medium="rab" show_rays ="true"  />
 		<positioning implementation="default" noise_level="0.0" />
       </sensors>
-      <params script="fire_fighter.lua" />
+      <params script="fire_fighters.lua" />
     </lua_controller>
     
     
@@ -55,9 +55,9 @@
   </controllers>
  
   <!-- *********************** -->
-  <!-- * Arena configuration * -->
+  <!-- *Small  Arena configuration * -->
   <!-- *********************** -->
-  <arena size="5, 5, 1" center="0,0,0.5">
+  <!-- <arena size="5, 5, 1" center="0,0,0.5">
 	<floor id="f" source="image" path="base_floor.png" />
     <box id="bn" size="0.1, 5, 0.5" movable="false">
       <body position="2.5, 0, 0"  orientation="0,0,0" />
@@ -70,11 +70,30 @@
     </box>
     <box id="bw" size="5, 0.1, 0.5" movable="false">
       <body position="0,2.5,0" orientation="0,0,0" />
+    </box> -->
+    
+    
+    <!-- *********************** -->
+  <!-- *Large  Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="10, 10, 1" center="0,0,0.5">
+	<floor id="f" source="image" path="base_floor.png" />
+    <box id="bn" size="0.1, 10, 0.5" movable="false">
+      <body position="5, 0, 0"  orientation="0,0,0" />
+    </box>
+    <box id="bs" size="0.1, 10, 0.5" movable="false">
+      <body position="-5,0,0" orientation="0,0,0" />
+    </box>
+    <box id="be" size="10, 0.1, 0.5" movable="false">
+      <body position="0,-5,0" orientation="0,0,0" />
+    </box>
+    <box id="bw" size="10, 0.1, 0.5" movable="false">
+      <body position="0,5,0" orientation="0,0,0" />
     </box>
 	   
 	   
-	   <!-- -----------------------Spawn Antenna Robot---------------------- -->
-	   
+	   <!-- -----------------------Spawn Antenna Robot  For Small Arena---------------------- -->
+    <!--
 	<foot-bot id="antenna0">
       	<controller config="antenna" />
       	<body position="1.22,1.19,0" orientation="0,0,0" />
@@ -89,59 +108,66 @@
       	<controller config="antenna" />
       	<body position="-1.97,1.72,0" orientation="0,0,0" />
     </foot-bot>
+    -->
+    
+    
+    <!-- -----------------------Spawn Antenna Robot  For Large Arena---------------------- -->
+    
+	<foot-bot id="antenna0">
+      	<controller config="antenna" />
+      	<body position="2.42,2.39,0" orientation="0,0,0" />
+    </foot-bot>
+        
+	<foot-bot id="antenna1">
+		<controller config="antenna" />
+		<body position="1.31,-3,0" orientation="0,0,0" />
+	</foot-bot>
+    
+    <foot-bot id="antenna2">
+      	<controller config="antenna" />
+      	<body position="-3.97,3.42,0" orientation="0,0,0" />
+    </foot-bot>
+    
 	   
-	   <!-- -----------------------Wall configuration 1------------------------ -->
-	   <!--
-	 
-    <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
+	   <!-- -----------------------Wall configuration Small------------------------ -->
+	   
+	 <!--
+    <box id="bw333" size="2, 0.1, 0.5" movable="false">
+      <body position="0.6,-0.7,0" orientation="0,0,0" />
+    </box>
+    
+    <box id="bw334" size="0.1, 1.5, 0.5" movable="false">
+      <body position="-1,1.7,0" orientation="0,0,0" />
+    </box>
+    -->
+    
+
+    
+    
+    <!-- ---------------------------Wall configuration Large  ----------------------------- -->
+    
+    
+    <!-- <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
       <body position="2,-1.5,0" orientation="0,0,0" />
     </box>
     
-    <!-- <box id="bw334" size="0.1, 4.5, 0.5" movable="false">
+    <box id="bw334" size="0.1, 4.5, 0.5" movable="false">
       <body position="-3.2,2.7,0" orientation="0,0,0" />
     </box> -->
     
-    -->
     
     
-    <!-- ---------------------------Wall configuration 2 ----------------------------- -->
-    
-    <!--
-    <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
-      <body position="-0.2,-2.4,0" orientation="0,0,0" />
-    </box>
-    
-    
-    <box id="bw334" size="0.1, 4.8, 0.5" movable="false">
-      <body position="-3,2.5,0" orientation="0,0,0" />
-    </box>
-    
-    <box id="bw335" size="0.1, 2.5, 0.5" movable="false">
-      <body position="-3,-3.6,0" orientation="0,0,0" />
-    </box>
-    
-    <box id="bw336" size="0.1, 4.8, 0.5" movable="false">
-      <body position="1,2.5,0" orientation="0,0,0" />
-    </box>
-    
-    <box id="bw337" size="5.2,0.1, 0.5" movable="false">
-      <body position="0.7,0.1,0" orientation="0,0,0" />
-    </box>
-    
-    <box id="bw338" size="1, 0.1, 0.5" movable="false">
-      <body position="4.4,-2.4,0" orientation="0,0,0" />
-    </box>
-    -->
     
 	 <distribute>
-		<position method="uniform" min="-2.4,-2.4,0" max="-1.5,-0.5,0" />
+		<position method="uniform" min="-4.9,-4.9,0" max="-2,-1,0" />
 		<orientation method="uniform" min="0,0,0" max="360,0,0" />
-		<entity quantity="24" max_trials="100">
+		<entity quantity="100" max_trials="100">
 		<foot-bot id="fb" rab_range="1">
 		  <controller config="lua" />
 		</foot-bot>
 		</entity>
 	 </distribute>
+	 
   </arena>
  
   <!-- ******************* -->

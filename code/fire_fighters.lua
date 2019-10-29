@@ -4,7 +4,7 @@ local SEARCH_FIRE, ATTEMPT_NEIGHBOURS, DEAL_FIRE = 0, 1, 2
 local GREEN_LED, RED_LED, BLACK_LED = "green", "red", "black"
 local ROBOT_PRESENCE, ANTENNA_FIELD, ROBOT_FIELD, ANTENNA_COMUNICATION = 1, 2, 3, 4
 local MIN_WHEELS, MAX_WHEELS = 1, 10
-local LOW_RANGE = 60
+local LOW_RANGE = 80   --60 , for small arena ..... 80 for large arena
 local ATTRACT_WRITER, REPULSE_WRITER = 1, 2 
 local MAX_MOTOR_GROUND_SENSOR = 4
 local VERY_LOW_POWER, LOW_POWER, MEDIUM_POWER, HIGH_POWER, VERY_HIGH_POWER = 2, 3, 4, 6, 10
@@ -76,10 +76,18 @@ function avoid_obstacle()
         length = max_proximity_value * HIGH_POWER, 
         angle = max_proximity_angle + math.pi
     }
-    v2 = {
-        length = max_proximity_value * LOW_POWER, 
-        angle = max_proximity_angle + math.pi/2
-    }
+    v2 = {}
+    if max_proximity_angle >= 0 and max_proximity_angle <= 90 then
+        v2 = {
+            length = max_proximity_value * MEDIUM_POWER, 
+            angle = max_proximity_angle - math.pi/2
+        }
+    elseif max_proximity_angle < 0 and max_proximity_angle >= -90 then
+        v2 = {
+            length = max_proximity_value * MEDIUM_POWER, 
+            angle = max_proximity_angle + math.pi/2
+        }
+    end
 	return vector.vec2_polar_sum(v1,v2)
 end    
 
@@ -169,7 +177,6 @@ function check_neighbors(range_and_bearing_data)
             attract_field = true 
             effective_rab = rab
         elseif rab.data[range_and_bearing_data] == REPULSE_WRITER and rab.range < LOW_RANGE then
-            log("Repulse")
             repulse_field = true
             attract_field = false
             effective_rab = rab
