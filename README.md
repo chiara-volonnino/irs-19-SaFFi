@@ -1,8 +1,6 @@
 # SaFFi - SwArm FireFighters
-Project for the course of "Intelligent Robotic Systems" AA.2018/2019
-
-https://www.unibo.it/en/teaching/course-unit-catalogue/course-unit/2019/412681
-
+Project for the course of "[Intelligent Robotic Systems](https://www.unibo.it/en/teaching/course-unit-catalogue/course-unit/2019/412681
+)" AA.2018/2019
 ## About the project 
 With this project we are going to tackle the use of a robot swarm to perform the typical actions needed in order to extinguish a fire, normally taken by human firefighters.
 
@@ -25,7 +23,7 @@ To run the project in large arena configuration use:
 It's possible to add walls to increase the difficulty level of the simulation. A first implementation is present in the respective argos files in the section entitled *walls configuration*, just uncomment the section and run the project.
 
 ## Documentation
-A brief presentation and a demo of the system can be found in doc folder: 
+A brief presentation and a demo of the system can be found in [doc folder] (https://github.com/chiara-volonnino/irs-19-SaFFi/tree/master/doc)
 
 ## Team members
 Chiara Volonnino (chiara.volonnino@studio.unibo.it)  
