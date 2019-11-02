@@ -23,7 +23,7 @@ To run the project in large arena configuration use:
 It's possible to add walls to increase the difficulty level of the simulation. A first implementation is present in the respective argos files in the section entitled *walls configuration*, just uncomment the section and run the project.
 
 ## Documentation
-A brief presentation and a demo of the system can be found in [doc folder] (https://github.com/chiara-volonnino/irs-19-SaFFi/tree/master/doc)
+A brief presentation and a demo of the system can be found in [doc folder](https://github.com/chiara-volonnino/irs-19-SaFFi/tree/master/doc)
 
 ## Team members
 Chiara Volonnino (chiara.volonnino@studio.unibo.it)  
