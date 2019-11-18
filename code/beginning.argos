@@ -1,0 +1,228 @@
+<?xml version="1.0" ?>
+ 
+<argos-configuration>
+ 
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="4" />
+    <experiment length="0" ticks_per_second="10"/>
+  </framework>
+ 
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+ 
+    <lua_controller id="lua">
+      <actuators>
+        <differential_steering implementation="default" noise_level="0.0"/>
+		<range_and_bearing implementation="default" />
+		<leds implementation="default" medium="leds" />
+      </actuators>
+
+      <sensors>
+        <differential_steering implementation="default" noise_level="0.0" />
+        <footbot_proximity implementation="default" show_rays="false" noise_level="0.0" />
+        <footbot_light implementation="rot_z_only" show_rays="false" noise_level="0.0" />
+		<footbot_motor_ground implementation="rot_z_only" noise_level="0.0" />
+		<range_and_bearing implementation="medium" medium="rab" show_rays ="true"  />
+		<positioning implementation="default" noise_level="0.0" />
+      </sensors>
+      <params script="beginning.lua" />
+    </lua_controller>
+    
+    
+    <lua_controller id="antenna">
+        <actuators>
+            <differential_steering implementation="default" noise_level="0.0"/>
+            <range_and_bearing implementation="default" />
+            <leds implementation="default" medium="leds" />
+        </actuators>
+
+        <sensors>
+            <differential_steering implementation="default" noise_level="0.0" />
+            <footbot_proximity implementation="default" show_rays="false" noise_level="0.0" />
+            <footbot_light implementation="rot_z_only" show_rays="false" noise_level="0.0" />
+            <footbot_motor_ground implementation="rot_z_only" noise_level="0.0" />
+            <range_and_bearing implementation="medium" medium="rab" show_rays ="true"  />
+            <positioning implementation="default" noise_level="0.0" />
+        </sensors>
+      <params script="antenna.lua" />
+      </lua_controller>
+ 
+  </controllers>
+ 
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="5, 5, 1" center="0,0,0.5">
+	<floor id="f" source="image" path="base_floor.png" />
+    <box id="bn" size="0.1, 5, 0.5" movable="false">
+      <body position="2.5, 0, 0"  orientation="0,0,0" />
+    </box>
+    <box id="bs" size="0.1, 5, 0.5" movable="false">
+      <body position="-2.5,0,0" orientation="0,0,0" />
+    </box>
+    <box id="be" size="5, 0.1, 0.5" movable="false">
+      <body position="0,-2.5,0" orientation="0,0,0" />
+    </box>
+    <box id="bw" size="5, 0.1, 0.5" movable="false">
+      <body position="0,2.5,0" orientation="0,0,0" />
+    </box>
+    
+    
+    <!-- -----------------Spawn light on fires-------------------- -->
+    
+    <light id="light0"
+           position="1.22,1.19,0.5"
+           orientation="0,0,0"
+           color="red"
+           intensity="1"
+           medium="leds"/>
+	
+	<light id="light1"
+	   position="0.68,-1.52,0.5"
+	   orientation="0,0,0"
+	   color="red"
+	   intensity="1"
+	   medium="leds"/>
+	<!--   
+	<light id="light2"
+	   position="1.93,0.55,0.5"
+	   orientation="0,0,0"
+	   color="red"
+	   intensity="1"
+	   medium="leds"/>
+	   -->
+	   
+   <light id="light3"
+	   position="-1.97,1.72,0.5"
+	   orientation="0,0,0"
+	   color="red"
+	   intensity="1"
+	   medium="leds"/>
+	   
+    <!--
+   <light id="light4"
+	   position="-1.14,1.14,0.5"
+	   orientation="0,0,0"
+	   color="red"
+	   intensity="1"
+	   medium="leds"/>
+	   -->
+	   
+	   
+	   <!-- -----------------------Spawn Antenna Robot---------------------- -->
+	   
+	<foot-bot id="antenna0">
+      	<controller config="antenna" />
+      	<body position="1.22,1.19,0" orientation="0,0,0" />
+    </foot-bot>
+        
+	<foot-bot id="antenna1">
+		<controller config="antenna" />
+		<body position="0.68,-1.52,0" orientation="0,0,0" />
+	</foot-bot>
+        
+    <!--
+	<foot-bot id="antenna2">
+		<controller config="antenna" />
+		<body position="1.93,0.55,0" orientation="0,0,0" />
+	</foot-bot>
+	-->
+    
+    <foot-bot id="antenna3">
+      	<controller config="antenna" />
+      	<body position="-1.97,1.72,0" orientation="0,0,0" />
+    </foot-bot>
+    
+    <!--
+    <foot-bot id="antenna4">
+      	<controller config="antenna" />
+      	<body position="-1.14,1.14,0" orientation="0,0,0" />
+    </foot-bot>
+    -->
+	   
+	   <!-- -----------------------Wall configuration 1------------------------ -->
+	   <!--
+	 
+    <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
+      <body position="2,-1.5,0" orientation="0,0,0" />
+    </box>
+    
+    <!-- <box id="bw334" size="0.1, 4.5, 0.5" movable="false">
+      <body position="-3.2,2.7,0" orientation="0,0,0" />
+    </box> -->
+    
+    -->
+    
+    
+    <!-- ---------------------------Wall configuration 2 ----------------------------- -->
+    
+    <!--
+    <box id="bw333" size="5.6, 0.1, 0.5" movable="false">
+      <body position="-0.2,-2.4,0" orientation="0,0,0" />
+    </box>
+    
+    
+    <box id="bw334" size="0.1, 4.8, 0.5" movable="false">
+      <body position="-3,2.5,0" orientation="0,0,0" />
+    </box>
+    
+    <box id="bw335" size="0.1, 2.5, 0.5" movable="false">
+      <body position="-3,-3.6,0" orientation="0,0,0" />
+    </box>
+    
+    <box id="bw336" size="0.1, 4.8, 0.5" movable="false">
+      <body position="1,2.5,0" orientation="0,0,0" />
+    </box>
+    
+    <box id="bw337" size="5.2,0.1, 0.5" movable="false">
+      <body position="0.7,0.1,0" orientation="0,0,0" />
+    </box>
+    
+    <box id="bw338" size="1, 0.1, 0.5" movable="false">
+      <body position="4.4,-2.4,0" orientation="0,0,0" />
+    </box>
+    -->
+    
+	 <distribute>
+		<position method="uniform" min="-2.4,-2.4,0" max="-1.5,-1.5,0" />
+		<orientation method="uniform" min="0,0,0" max="360,0,0" />
+		<entity quantity="10" max_trials="100">
+		<foot-bot id="fb" rab_range="1">
+		  <controller config="lua" />
+		</foot-bot>
+		</entity>
+	 </distribute>
+  </arena>
+ 
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+ 
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+    <led id="leds" />
+	<range_and_bearing id="rab" index="grid" grid_size="1,1,1" />
+  </media>
+
+	
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+    <qt-opengl lua_editor="false">
+      <camera>
+        <placement idx="0" position="-2.0767,0.015,2.74921" look_at="-1.59254,0.015,1.87423" lens_focal_length="20" />
+      </camera>
+    </qt-opengl>
+  </visualization>
+</argos-configuration>
